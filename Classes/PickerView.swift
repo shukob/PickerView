@@ -9,6 +9,17 @@
 import UIKit
 
 open class PickerView: UITextField {
+    @IBInspectable open var top: CGFloat = 0
+    @IBInspectable open var left: CGFloat = 0
+    @IBInspectable open var bottom: CGFloat = 0
+    @IBInspectable open var right: CGFloat = 0
+    
+    @IBInspectable open var normalBorderColor: UIColor? = nil
+    @IBInspectable open var highlightBorderColor: UIColor? = nil
+    
+    @IBInspectable open var normalBackgroundImage: UIImage? = nil
+    @IBInspectable open var highlightBackgroundImage: UIImage? = nil
+
     public var source: PickerViewSource? {
         didSet {
             updateTitle()
@@ -75,6 +86,44 @@ open class PickerView: UITextField {
         UIMenuController.shared.isMenuVisible = false
         return false
     }
+    
+    open override func textRect(forBounds bounds: CGRect) -> CGRect {
+        return textFieldRect(forBounds: bounds)
+    }
+    
+    open override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        return textFieldRect(forBounds: bounds)
+    }
+    
+    open override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+        return textFieldRect(forBounds: bounds)
+    }
+    
+    open override func leftViewRect(forBounds bounds: CGRect) -> CGRect {
+        guard let leftViewBounds = leftView?.bounds else {
+            return .zero
+        }
+        
+        return CGRect(
+            x: bounds.minX + left,
+            y: bounds.minY + top,
+            width: leftViewBounds.width,
+            height: bounds.height - top - bottom
+        )
+    }
+    
+    open override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
+        guard let rightViewBounds = rightView?.bounds else {
+            return .zero
+        }
+        
+        return CGRect(
+            x: bounds.maxX - right - rightViewBounds.width,
+            y: bounds.minY + top,
+            width: rightViewBounds.width,
+            height: bounds.height - top - bottom
+        )
+    }
 }
 
 // MARK: UIPickerView
@@ -125,8 +174,10 @@ extension PickerView {
     fileprivate func setupView() {
         pickerView = UIPickerView()
         toolbar = UIToolbar()
-        delegate = self
         tintColor = .clear
+        
+        addTarget(self, action: #selector(editingDidBegin(_:)), for: .editingDidBegin)
+        addTarget(self, action: #selector(editingDidEnd(_:)), for: .editingDidEnd)
     }
     
     fileprivate func updateTitle() {
@@ -138,6 +189,20 @@ extension PickerView {
             }.reduce("", +)
         }
     }
+    
+    fileprivate func textFieldRect(forBounds bounds: CGRect) -> CGRect {
+        let leftViewBounds = leftView?.bounds ?? .zero
+        let rightViewBounds = rightView?.bounds ?? .zero
+        
+        let leftPadding = leftViewBounds.width > 0 ? left : 0
+        let rightPadding = rightViewBounds.width > 0 ? right : 0
+        return CGRect(
+            x: bounds.minX + left + leftViewBounds.width + leftPadding,
+            y: bounds.minY + top,
+            width: bounds.width - left - right - leftViewBounds.width - leftPadding - rightViewBounds.width - rightPadding,
+            height: bounds.height - top - bottom
+        )
+    }
 }
 
 // MARK: Event
@@ -146,24 +211,33 @@ extension PickerView {
     @objc fileprivate func tapCompletionButton(_ sender: Any) {
         resignFirstResponder()
     }
-}
-
-// MARK: UITextFieldDelegate
-extension PickerView: UITextFieldDelegate {
     
-    public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+    @objc fileprivate func editingDidBegin(_ sender: Any) {
         beginEditing?()
         
         selectedRows.forEach { (row, component) in
             self.selectRow(row, inComponent: component, animated: false)
         }
         
-        return true
+        if let highlightBorderColor = highlightBorderColor {
+            layer.borderColor = highlightBorderColor.cgColor
+        }
+        
+        if let highlightBackgroundImage = highlightBackgroundImage {
+            background = highlightBackgroundImage
+        }
     }
     
-    public func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+    @objc fileprivate func editingDidEnd(_ sender: Any) {
         endEditing?((self, selectedRows))
-        return true
+        
+        if let normalBorderColor = normalBorderColor {
+            layer.borderColor = normalBorderColor.cgColor
+        }
+        
+        if let normalBackgroundImage = normalBackgroundImage {
+            background = normalBackgroundImage
+        }
     }
 }
 

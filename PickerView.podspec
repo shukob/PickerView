@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = "PickerView"
-  s.version = "1.0.0"
+  s.version = "1.1.0"
   s.summary = "Quickly create a view with tags, written in Swift"
   s.homepage = "https://github.com/tomoponzoo/PickerView"
   s.license = "MIT"
