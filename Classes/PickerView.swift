@@ -104,11 +104,12 @@ open class PickerView: UITextField {
             return .zero
         }
         
+        let y = bounds.height / 2.0 - leftViewBounds.height / 2.0
         return CGRect(
             x: bounds.minX + left,
-            y: bounds.minY + top,
+            y: y < 0 ? 0 : y,
             width: leftViewBounds.width,
-            height: bounds.height - top - bottom
+            height: leftViewBounds.height
         )
     }
     
@@ -117,11 +118,12 @@ open class PickerView: UITextField {
             return .zero
         }
         
+        let y = bounds.height / 2.0 - rightViewBounds.height / 2.0
         return CGRect(
             x: bounds.maxX - right - rightViewBounds.width,
-            y: bounds.minY + top,
+            y: y < 0 ? 0 : y,
             width: rightViewBounds.width,
-            height: bounds.height - top - bottom
+            height: rightViewBounds.height
         )
     }
 }
