@@ -168,7 +168,7 @@ extension PickerView {
     
     fileprivate var selectedRows: [(row: Int, component: Int)] {
         return (0 ..< pickerView.numberOfComponents)
-            .flatMap { self.source?.component(for: $0).index }
+            .compactMap { self.source?.component(for: $0).index }
             .enumerated()
             .map { ($0.element, $0.offset) }
     }
@@ -186,7 +186,7 @@ extension PickerView {
         if let closure = source?.titleFor {
             text = closure((self, selectedRows))
         } else {
-            text = selectedRows.flatMap { (row, component) -> String? in
+            text = selectedRows.compactMap { (row, component) -> String? in
                 return self.source?.pickerView(self, titleForRow: row, forComponent: component)
             }.reduce("", +)
         }
